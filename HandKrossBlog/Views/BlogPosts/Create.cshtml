@@ -1,0 +1,62 @@
+﻿@model HandKrossBlog.Models.BlogPost
+
+@{
+    ViewData["Title"] = "Create";
+    string ErrorMessage = (ViewData["ErrorMessage"] ?? string.Empty) as string;
+}
+
+<link type="text/css" rel="stylesheet" href="~/css/trumbowyg.min.css" />
+
+<div class="container">
+    <h1>Create Post</h1>
+    <hr />
+    <div class="row">
+        <div class="col-md-10">
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
+            }
+
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="Title" class="control-label"></label>
+                    <input asp-for="Title" class="form-control" autofocus />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Text" class="control-label"></label>
+                    <textarea asp-for="Text" class="form-control"></textarea>
+                    <span asp-validation-for="Text" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreatedBy" class="control-label"></label>
+                    <input asp-for="CreatedBy" class="form-control" />
+                    <span asp-validation-for="CreatedBy" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+<script src="~/js/trumbowyg.min.js"></script>
+<script>
+    $(function () {
+        $("#Text").trumbowyg();
+        $("#Title").focus();
+    })
+</script>

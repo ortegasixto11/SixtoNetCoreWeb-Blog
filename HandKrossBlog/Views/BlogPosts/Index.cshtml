@@ -1,0 +1,90 @@
+﻿@model HandKrossBlog.ViewModels.BlogPostsIndex
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<style>
+    #list_post .card:hover {
+        border: 1px solid #0a8ecd;
+        cursor: pointer;
+    }
+
+    #list_post .card-active {
+        border: 1px solid red;
+    }
+</style>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+<div class="container-fluid">
+
+    <p>
+        <a asp-action="Create">Create Post</a>
+    </p>
+
+    <div class="row">
+        <div class="col-sm-4" id="list_post">
+            @{ var firstItem = Model.BlogPosts.OrderByDescending(x => x.DateCreated).First();  }
+            @foreach (var item in Model.BlogPosts.OrderByDescending(x => x.DateCreated))
+            {
+                <div class="card @(firstItem == item ? "card-active" : "" ) " id="card_post_id_@item.Id" onclick="loadPostPartialView('@item.Id')">
+                    <div class="card-body" style="padding-top: 10px !important; padding-bottom: 10px !important;">
+                        <h5 class="card-title font-weight-bold"> @item.Title </h5>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Posted on @item.DateCreated.ToString("MMMM, d yyyy") by @item.CreatedBy &nbsp; <span id="span_comment_number_post_id_@item.Id"> @item.BlogPostComments.Count() </span> comentarios
+                    </div>
+                </div>
+                <br />
+            }
+        </div>
+        <div class="col-sm-8" id="container-blogpost">
+            @await Html.PartialAsync("../Shared/_BlogPost.cshtml", Model.LastBlogPost)
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="~/js/blog.js"></script>
+<script>
+    function loadPostPartialView(blogPostId) {
+
+        var formData = new FormData();
+        formData.append("PostId", blogPostId)
+
+        var request = {
+            method: 'POST',
+            body: formData
+        }
+
+        fetch("/BlogPosts/GetPartialView_Post", request)
+            .then(function (res) {
+                return res.json()
+            })
+            .then(function (result) {
+                if (result.response) {
+                    document.getElementById('btnSaveComment').removeEventListener('click', function () { saveComment() })
+                    document.getElementById('container-blogpost').innerHTML = result.view
+                    document.getElementById('btnSaveComment').addEventListener('click', function () { saveComment() })
+                    clearClassPostActive()
+                    document.getElementById('card_post_id_' + blogPostId).classList.add('card-active')
+                }
+            })
+            .catch(function (err) {
+                alert(err)
+            })
+    }
+
+    function clearClassPostActive() {
+        var posts = document.querySelectorAll('#list_post .card')
+        posts.forEach(function (item) {
+            item.classList.remove('card-active')
+        })
+    }
+
+</script>
+
