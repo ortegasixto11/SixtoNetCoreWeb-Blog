@@ -9,6 +9,7 @@ using HandKrossBlog.Data;
 using HandKrossBlog.Models;
 using HandKrossBlog.Services;
 using Microsoft.AspNetCore.Hosting;
+using HandKrossBlog.ViewModels;
 
 namespace HandKrossBlog.Controllers
 {
@@ -24,18 +25,43 @@ namespace HandKrossBlog.Controllers
         }
 
         // GET: BlogPosts
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? PageIndex)
         {
-            HandKrossBlog.ViewModels.BlogPostsIndex viewModelIndex = new ViewModels.BlogPostsIndex
-            {
-                BlogPosts = await _context.Posts.Include(x => x.BlogPostComments).ToListAsync(),
-                LastBlogPost = await _context.Posts.Include(x => x.BlogPostComments).OrderByDescending(x => x.DateCreated).Take(1).FirstOrDefaultAsync()
-            };
+            BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(PageIndex);
+            return View(viewModelIndex);
+        }
 
+        public async Task<IActionResult> GetPartialView_SectionPostPaginated(int? PageIndex)
+        {
+            try
+            {
+                BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(PageIndex);
+                var viewHtmlPaginationPosts = _viewRenderService.RenderToStringAsync("_PaginationBlogPosts", viewModelIndex);
+                var viewHtmlPost = _viewRenderService.RenderToStringAsync("_BlogPost", viewModelIndex.LastBlogPost);
+                return new JsonResult(new { Response = "true", ViewPaginationPosts = viewHtmlPaginationPosts.Result, ViewPostActive = viewHtmlPost.Result });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { Response = "false", Error = ex.Message });
+            }
+        }
+
+        private async Task<BlogPostsIndex> GetBlogPostsPaginated(int? PageIndex)
+        {
+            PageIndex = PageIndex == 0 ? 1 : PageIndex;
+            BlogPostsIndex viewModelIndex = new BlogPostsIndex();
+            IQueryable<BlogPost> blogPost = null;
+            blogPost = _context.Posts
+                            .Include(x => x.BlogPostComments)
+                            .Include(x => x.BlogPostVisits)
+                            .OrderByDescending(x => x.DateCreated)
+                            .AsNoTracking();
+
+            viewModelIndex.BlogPosts = await Helpers.PaginatedList<BlogPost>.CreateAsync(blogPost, PageIndex ?? 1, 3);
+            viewModelIndex.LastBlogPost = viewModelIndex.BlogPosts.First();
             // Registro la visita del Post
             RegisterVisitBlog(viewModelIndex.LastBlogPost.Id);
-
-            return View(viewModelIndex);
+            return viewModelIndex;
         }
 
         // GET: BlogPosts/Details/5
@@ -241,7 +267,7 @@ namespace HandKrossBlog.Controllers
         {
             try
             {
-                var post = _context.Posts.Where(x => x.Id == PostId).Include(x => x.BlogPostComments).FirstOrDefault();
+                var post = _context.Posts.Where(x => x.Id == PostId).Include(x => x.BlogPostComments).Include(x => x.BlogPostVisits).FirstOrDefault();
                 if (post == null)
                 {
                     return new JsonResult(new { Response = "false", Error = "No existe el Post" });
@@ -251,7 +277,7 @@ namespace HandKrossBlog.Controllers
                     // Registro la visita del Post
                     RegisterVisitBlog(post.Id);
                     var viewHtml = _viewRenderService.RenderToStringAsync("_BlogPost", post);
-                    return new JsonResult(new { Response = "true", View = viewHtml.Result });
+                    return new JsonResult(new { Response = "true", View = viewHtml.Result, NumberOfVisits = post.BlogPostVisits.Count() });
                 }
             }
             catch (Exception ex)

@@ -6,16 +6,17 @@
 
 
 <style>
-    #list_post .card:hover {
+    #container_pagination_posts .card:hover {
         border: 1px solid #0a8ecd;
         cursor: pointer;
     }
 
-    #list_post .card-active {
+    #container_pagination_posts .card-active {
         border: 1px solid red;
     }
 </style>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" rel="stylesheet" />
 
 
 <div class="container-fluid">
@@ -25,20 +26,8 @@
     </p>
 
     <div class="row">
-        <div class="col-sm-4" id="list_post">
-            @{ var firstItem = Model.BlogPosts.OrderByDescending(x => x.DateCreated).First();  }
-            @foreach (var item in Model.BlogPosts.OrderByDescending(x => x.DateCreated))
-            {
-                <div class="card @(firstItem == item ? "card-active" : "" ) " id="card_post_id_@item.Id" onclick="loadPostPartialView('@item.Id')">
-                    <div class="card-body" style="padding-top: 10px !important; padding-bottom: 10px !important;">
-                        <h5 class="card-title font-weight-bold"> @item.Title </h5>
-                    </div>
-                    <div class="card-footer text-muted">
-                        Posted on @item.DateCreated.ToString("MMMM, d yyyy") by @item.CreatedBy &nbsp; <span id="span_comment_number_post_id_@item.Id"> @item.BlogPostComments.Count() </span> comentarios
-                    </div>
-                </div>
-                <br />
-            }
+        <div class="col-sm-4" id="container_pagination_posts">
+            @await Html.PartialAsync("../Shared/_PaginationBlogPosts.cshtml", Model)
         </div>
         <div class="col-sm-8" id="container-blogpost">
             @await Html.PartialAsync("../Shared/_BlogPost.cshtml", Model.LastBlogPost)
@@ -72,6 +61,7 @@
                     document.getElementById('btnSaveComment').addEventListener('click', function () { saveComment() })
                     clearClassPostActive()
                     document.getElementById('card_post_id_' + blogPostId).classList.add('card-active')
+                    document.getElementById('span_number_visits_post_id_' + blogPostId).innerHTML = result.numberOfVisits
                 }
             })
             .catch(function (err) {
@@ -80,7 +70,7 @@
     }
 
     function clearClassPostActive() {
-        var posts = document.querySelectorAll('#list_post .card')
+        var posts = document.querySelectorAll('#container_pagination_posts .card')
         posts.forEach(function (item) {
             item.classList.remove('card-active')
         })

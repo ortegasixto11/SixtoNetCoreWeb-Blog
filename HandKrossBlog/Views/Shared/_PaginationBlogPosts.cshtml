@@ -1,0 +1,124 @@
+﻿@model HandKrossBlog.ViewModels.BlogPostsIndex
+
+@{
+    var firstItem = Model.LastBlogPost;
+
+    var prevDisabled = !Model.BlogPosts.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.BlogPosts.HasNextPage ? "disabled" : "";
+    int pageMinus = Model.BlogPosts.PageIndex - 1;
+    int pagePlus = Model.BlogPosts.PageIndex + 1;
+}
+
+@foreach (var item in Model.BlogPosts)
+{
+    <div class="card @(firstItem == item ? "card-active" : "" ) " id="card_post_id_@item.Id" onclick="loadPostPartialView('@item.Id')">
+        <div class="card-body" style="padding-top: 10px !important; padding-bottom: 10px !important;">
+            <h5 class="card-title font-weight-bold"> @item.Title </h5>
+        </div>
+        <div class="card-footer text-muted">
+            @item.DateCreated.ToString("MMMM, d yyyy") by @item.CreatedBy &nbsp;
+            <span id="span_comment_number_post_id_@item.Id"> @item.BlogPostComments.Count() </span> @(item.BlogPostComments.Count() > 1 ? "comments" : "comment") &nbsp;
+            <i class="fas fa-eye"></i> <span id="span_number_visits_post_id_@item.Id"> @item.BlogPostVisits.Count() </span>
+        </div>
+    </div>
+    <br />
+}
+
+<nav aria-label="...">
+    <ul class="pagination justify-content-center">
+        <!-- Boton de Previous -->
+        <li class="page-item @prevDisabled">
+            @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@pageMinus" class="page-link" tabindex="-1">Previous</a>*@
+            <button class="page-link" onclick="loadSectionPostPaginated(@pageMinus)">Previous</button>
+        </li>
+
+
+        @if (!Model.BlogPosts.HasPreviousPage)
+        {
+            <li class="page-item active">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@Model.BlogPosts.PageIndex" class="page-link">@Model.BlogPosts.PageIndex</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@Model.BlogPosts.PageIndex)">@Model.BlogPosts.PageIndex</button>
+            </li>
+        }
+        @if (!Model.BlogPosts.HasNextPage && pageMinus >= Model.BlogPosts.TotalPages - 2)
+        {
+            int pageMinusMinus = pageMinus - 1;
+            <li class="page-item">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@pageMinusMinus" class="page-link">@pageMinusMinus</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@pageMinusMinus)">@pageMinusMinus</button>
+            </li>
+        }
+
+
+        @if (Model.BlogPosts.HasPreviousPage)
+        {
+            <li class="page-item">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@pageMinus" class="page-link">@pageMinus</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@pageMinus)">@pageMinus</button>
+            </li>
+        }
+
+        @if (Model.BlogPosts.HasPreviousPage && Model.BlogPosts.HasNextPage)
+        {
+            <li class="page-item active">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@Model.BlogPosts.PageIndex" class="page-link">@Model.BlogPosts.PageIndex</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@Model.BlogPosts.PageIndex)">@Model.BlogPosts.PageIndex</button>
+            </li>
+        }
+
+
+        @if (Model.BlogPosts.HasNextPage)
+        {
+            <li class="page-item">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@pagePlus" class="page-link">@pagePlus</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@pagePlus)">@pagePlus</button>
+            </li>
+        }
+
+
+        @if (!Model.BlogPosts.HasPreviousPage && pagePlus <= Model.BlogPosts.TotalPages - 1)
+        {
+            int pagePlusPlus = pagePlus + 1;
+            <li class="page-item">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@pagePlusPlus" class="page-link">@pagePlusPlus</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@pagePlusPlus)">@pagePlusPlus</button>
+            </li>
+        }
+        @if (!Model.BlogPosts.HasNextPage)
+        {
+            <li class="page-item active">
+                @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@Model.BlogPosts.PageIndex" class="page-link">@Model.BlogPosts.TotalPages</a>*@
+                <button class="page-link" onclick="loadSectionPostPaginated(@Model.BlogPosts.TotalPages)">@Model.BlogPosts.TotalPages</button>
+            </li>
+        }
+
+        <!-- Boton de Next -->
+        <li class="page-item @nextDisabled">
+            @*<a asp-controller="BlogPosts" asp-action="Index" asp-route-PageIndex="@pagePlus" class="page-link">Next</a>*@
+            <button class="page-link" onclick="loadSectionPostPaginated(@pagePlus)">Next</button>
+        </li>
+    </ul>
+</nav>
+
+<script>
+    function loadSectionPostPaginated(pageIndex) {
+
+        let url = "/BlogPosts/GetPartialView_SectionPostPaginated/?PageIndex=" + pageIndex
+
+        fetch(url)
+            .then(function (res) {
+                return res.json()
+            })
+            .then(function (result) {
+                if (result.response) {
+                    debugger
+                    document.getElementById('container_pagination_posts').innerHTML = result.viewPaginationPosts
+                    document.getElementById('container-blogpost').innerHTML = result.viewPostActive
+                }
+            })
+            .catch(function (err) {
+                alert(err)
+            })
+
+    }
+</script>
