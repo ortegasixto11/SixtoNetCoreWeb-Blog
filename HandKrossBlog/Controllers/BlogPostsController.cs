@@ -10,6 +10,8 @@ using HandKrossBlog.Models;
 using HandKrossBlog.Services;
 using Microsoft.AspNetCore.Hosting;
 using HandKrossBlog.ViewModels;
+using HandKrossBlog.Helpers;
+using System.Linq.Expressions;
 
 namespace HandKrossBlog.Controllers
 {
@@ -17,6 +19,9 @@ namespace HandKrossBlog.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IViewRenderService _viewRenderService;
+
+        public const int NUMBER_OF_ITEMS_PER_REQUEST = 5;
+
 
         public BlogPostsController(ApplicationDbContext context, IViewRenderService viewRenderService)
         {
@@ -27,18 +32,27 @@ namespace HandKrossBlog.Controllers
         // GET: BlogPosts
         public async Task<IActionResult> Index(int? PageIndex)
         {
-            BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(PageIndex);
+            BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(true, PageIndex, null);
             return View(viewModelIndex);
         }
 
-        public async Task<IActionResult> GetPartialView_SectionPostPaginated(int? PageIndex)
+        public async Task<IActionResult> Home(int? PageIndex)
+        {
+            BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(false, PageIndex, null);
+            viewModelIndex.ShowNavbarPagination = false; // Oculto la navegacion de la paginacion
+            return View(viewModelIndex);
+        }
+
+        public async Task<IActionResult> GetPartialView_SectionPostPaginated(bool RegisterPostVisit, bool ShowNavbarPagination, int? PageIndex, int? TotalItems, string Query = null)
         {
             try
             {
-                BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(PageIndex);
-                var viewHtmlPaginationPosts = _viewRenderService.RenderToStringAsync("_PaginationBlogPosts", viewModelIndex);
-                var viewHtmlPost = _viewRenderService.RenderToStringAsync("_BlogPost", viewModelIndex.LastBlogPost);
-                return new JsonResult(new { Response = "true", ViewPaginationPosts = viewHtmlPaginationPosts.Result, ViewPostActive = viewHtmlPost.Result });
+                BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(RegisterPostVisit, PageIndex, TotalItems, Query);
+                viewModelIndex.ShowNavbarPagination = ShowNavbarPagination;
+                var viewHtmlPaginationPosts = viewModelIndex.BlogPosts.Count > 0 ? _viewRenderService.RenderToStringAsync("_PaginationBlogPosts", viewModelIndex).Result : "";
+                var viewHtmlPost = RegisterPostVisit ? _viewRenderService.RenderToStringAsync("_BlogPost", viewModelIndex.LastBlogPost).Result : "";
+                int totalPostnumber = await GetTotalPostNumber();
+                return new JsonResult(new { Response = "true", ViewPaginationPosts = viewHtmlPaginationPosts, ViewPostActive = viewHtmlPost, TotalPostnumber = totalPostnumber });
             }
             catch (Exception ex)
             {
@@ -46,22 +60,49 @@ namespace HandKrossBlog.Controllers
             }
         }
 
-        private async Task<BlogPostsIndex> GetBlogPostsPaginated(int? PageIndex)
+        private async Task<BlogPostsIndex> GetBlogPostsPaginated(bool RegisterPostVisit, int? PageIndex, int? TotalItems, string Query = null)
         {
             PageIndex = PageIndex == 0 ? 1 : PageIndex;
-            BlogPostsIndex viewModelIndex = new BlogPostsIndex();
-            IQueryable<BlogPost> blogPost = null;
-            blogPost = _context.Posts
-                            .Include(x => x.BlogPostComments)
-                            .Include(x => x.BlogPostVisits)
-                            .OrderByDescending(x => x.DateCreated)
-                            .AsNoTracking();
+            if(TotalItems > 0) PageIndex = (TotalItems / NUMBER_OF_ITEMS_PER_REQUEST) + 1;
 
-            viewModelIndex.BlogPosts = await Helpers.PaginatedList<BlogPost>.CreateAsync(blogPost, PageIndex ?? 1, 3);
-            viewModelIndex.LastBlogPost = viewModelIndex.BlogPosts.First();
-            // Registro la visita del Post
-            RegisterVisitBlog(viewModelIndex.LastBlogPost.Id);
+            BlogPostsIndex viewModelIndex = new BlogPostsIndex();
+            IQueryable<BlogPost> blogPosts = null;
+
+            if (Query == null)
+            {
+                blogPosts = _context.Posts
+                                    .Include(x => x.BlogPostComments)
+                                    .Include(x => x.BlogPostVisits)
+                                    .OrderByDescending(x => x.DateCreated)
+                                    .AsNoTracking();
+            }
+            else
+            {
+                var words = Query.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                blogPosts = _context.Posts
+                                    .Include(x => x.BlogPostComments)
+                                    .Include(x => x.BlogPostVisits)
+                                    .OrderByDescending(x => x.DateCreated)
+                                    .WhereAll_AND(words.Select(w => (Expression<Func<BlogPost, bool>>)(x => EF.Functions.Like(x.Title + x.Fullname + x.Specialty_customized, "%" + w + "%"))).ToArray())
+                                    .AsNoTracking();
+            }
+
+            viewModelIndex.BlogPosts = await PaginatedList<BlogPost>.CreateAsync(blogPosts, PageIndex ?? 1, NUMBER_OF_ITEMS_PER_REQUEST);
+            viewModelIndex.LastBlogPost = viewModelIndex.BlogPosts.Count > 0 ? viewModelIndex.BlogPosts.First() : new BlogPost();
+
+            if (RegisterPostVisit)
+            {
+                // Registro la visita del Post
+                this.RegisterPostVisit(viewModelIndex.LastBlogPost.Id);
+            }
             return viewModelIndex;
+        }
+
+        private async Task<int> GetTotalPostNumber()
+        {
+            int numberPosts = 0;
+            numberPosts = await _context.Posts.CountAsync();
+            return numberPosts;
         }
 
         // GET: BlogPosts/Details/5
@@ -70,6 +111,8 @@ namespace HandKrossBlog.Controllers
             if (id == null) return NotFound();
             var blogPost = await _context.Posts.Include(x => x.BlogPostComments).FirstOrDefaultAsync(m => m.Id == id);
             if (blogPost == null) return NotFound();
+            // Registro la visita del Post
+            RegisterPostVisit(blogPost.Id);
             return View(blogPost);
         }
 
@@ -96,9 +139,17 @@ namespace HandKrossBlog.Controllers
                 ViewData["ErrorMessage"] = "Ingrese el texto del Post";
                 return View(blogPost);
             }
-            if (string.IsNullOrEmpty(blogPost.CreatedBy))
+            if (string.IsNullOrEmpty(blogPost.Fullname))
             {
-                blogPost.CreatedBy = "Anónimo";
+                blogPost.Fullname = "Anónimo";
+            }
+            if (string.IsNullOrEmpty(blogPost.AvatarUrl))
+            {
+                blogPost.Fullname = "http://placehold.it/50x50";
+            }
+            if (string.IsNullOrEmpty(blogPost.Specialty_customized))
+            {
+                blogPost.Fullname = "Medico Cirujano";
             }
 
             if (ModelState.IsValid)
@@ -275,7 +326,7 @@ namespace HandKrossBlog.Controllers
                 else
                 {
                     // Registro la visita del Post
-                    RegisterVisitBlog(post.Id);
+                    RegisterPostVisit(post.Id);
                     var viewHtml = _viewRenderService.RenderToStringAsync("_BlogPost", post);
                     return new JsonResult(new { Response = "true", View = viewHtml.Result, NumberOfVisits = post.BlogPostVisits.Count() });
                 }
@@ -307,7 +358,7 @@ namespace HandKrossBlog.Controllers
             }
         }
 
-        private void RegisterVisitBlog(Guid PostId)
+        private void RegisterPostVisit(Guid PostId)
         {
             var ipAddress = HttpContext.Connection.RemoteIpAddress;
             var modelVisit = new BlogVisit
@@ -323,10 +374,38 @@ namespace HandKrossBlog.Controllers
 
         }
 
-
         private bool BlogPostExists(Guid id)
         {
             return _context.Posts.Any(e => e.Id == id);
         }
+
+        //public async Task<IActionResult> SearchBlogs(string Query)
+        //{
+        //    try
+        //    {
+        //        BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(false, null, null, Query);
+        //        viewModelIndex.ShowNavbarPagination = false; // Oculto la navegacion de la paginacion
+        //        string view_searchResults = GetPartialView_BlogPost(viewModelIndex);
+        //        return new JsonResult(new { Response = "true", viewSearchResults = view_searchResults });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new JsonResult(new { Response = "false", Error = ex.Message });
+        //    }
+        //}
+
+        //private string GetPartialView_BlogPost(BlogPostsIndex blogPosts)
+        //{
+        //    try
+        //    {
+        //        var viewHtml = _viewRenderService.RenderToStringAsync("_PaginationBlogPosts", blogPosts);
+        //        return viewHtml.Result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return "Error " + ex.Message;
+        //    }
+        //}
+
     }
 }

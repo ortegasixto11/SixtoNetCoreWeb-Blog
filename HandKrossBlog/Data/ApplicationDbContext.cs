@@ -17,5 +17,7 @@ namespace HandKrossBlog.Data
         public virtual DbSet<BlogPost> Posts { get; set; }
         public virtual DbSet<BlogComment> Comments { get; set; }
         public virtual DbSet<BlogVisit> Visits { get; set; }
+        public virtual DbSet<Question> Questions { get; set; }
+        public virtual DbSet<Answer> Answers { get; set; }
     }
 }

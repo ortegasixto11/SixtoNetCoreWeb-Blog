@@ -1,0 +1,165 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" rel="stylesheet" />
+<style>
+    .btn-handkross{
+        color: #fff;
+        background: #3157A7;
+        border-color: #3157A7;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="text-center"> Questions </h2>
+        </div>
+    </div>
+    <br />
+
+    <!-- Input Buscar Pregunta -->
+    <div class="row justify-content-center">
+        <div class="col-8">
+            @*<div class="form-group">
+                <input class="form-control" placeholder="Search a question" autofocus />
+            </div>*@
+            <div class="input-group mb-2">
+
+                <input id="inputSearchQuestion" type="text" class="form-control" placeholder="Search a question" autofocus onkeyup="tipingQuestion()">
+                <div class="input-group-append">
+                    <button class="btn btn-handkross" type="button" onclick="searchQuestion()"> <i class="fas fa-search"></i> </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boton de Hacer una Pregunta -->
+    <div class="row justify-content-center">
+        <div class="col-8">
+            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#modalMakeQuestion">Make a question</button>
+        </div>
+    </div>
+    <br /> <br />
+
+    <!-- Resultados de la busqueda de preguntas -->
+    <div id="rowSearchResults" class="row justify-content-center d-none">
+        <div class="col-8">
+            <h2>Search results</h2>
+            <div id="containerSearchResults">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Make Question -->
+    <div class="modal fade" id="modalMakeQuestion" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Make a question</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div id="alert-warning-edit-comment" class="alert alert-warning d-none" role="alert">
+                            Debe ingresar un texto para poder guardar su comentario
+                        </div>
+                        Consejos para recibir buenas respuestas enseguida
+                        <p>
+                            Asegúrate de que tu pregunta no se haya hecho antes
+                            <br />
+                            Mantenga su pregunta corta y precisa
+                            <br />
+                            Comprueba que no haya errores ortográficos o gramaticales
+                        </p>
+                        <div id="alert-warning-question" class="alert alert-warning d-none" role="alert">
+                            Debe ingresar un texto para poder enviar su pregunta.
+                        </div>
+                        <textarea id="inputWriteQuestion" class="form-control" rows="3" placeholder="Write your question" maxlength="120"></textarea>
+                    </div>
+
+                    <!-- Search results -->
+                    <div>
+                        <ul class="list-group">
+                            <li class="list-group-item">Cras justo odio</li>
+                            <li class="list-group-item">Dapibus ac facilisis in</li>
+                            <li class="list-group-item">Morbi leo risus</li>
+                            <li class="list-group-item">Porta ac consectetur ac</li>
+                            <li class="list-group-item">Vestibulum at eros</li>
+                            <li class="list-group-item">Cras justo odio</li>
+                            <li class="list-group-item">Dapibus ac facilisis in</li>
+                            <li class="list-group-item">Morbi leo risus</li>
+                            <li class="list-group-item">Porta ac consectetur ac</li>
+                            <li class="list-group-item">Vestibulum at eros</li>
+                            <li class="list-group-item">Cras justo odio</li>
+                            <li class="list-group-item">Dapibus ac facilisis in</li>
+                            <li class="list-group-item">Morbi leo risus</li>
+                            <li class="list-group-item">Porta ac consectetur ac</li>
+                            <li class="list-group-item">Vestibulum at eros</li>
+                            <li class="list-group-item">Cras justo odio</li>
+                            <li class="list-group-item">Dapibus ac facilisis in</li>
+                            <li class="list-group-item">Morbi leo risus</li>
+                            <li class="list-group-item">Porta ac consectetur ac</li>
+                            <li class="list-group-item">Vestibulum at eros</li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnCloseModalMakeQuestion" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="sendQuestion()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div> <!-- End .modal Edit Comment -->
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="~/js/general.js"></script>
+<script src="~/js/question.js"></script>
+<script>
+
+    let timeout_typing = null
+
+    function tipingQuestion() {
+        clearTimeout(timeout_typing)
+        timeout_typing = setTimeout(function () { searchQuestion() }, 500)
+    }
+
+    function searchQuestion() {
+        let question = document.getElementById('inputSearchQuestion').value
+
+        if (question.trim() !== '') {
+            let formData = new FormData()
+            formData.append("Question", question)
+
+            getApiPost('/Questions/SearchResult', formData)
+                .then(function (result) {
+                    if (result.response === "true") {
+                        document.getElementById('rowSearchResults').classList.remove('d-none')
+                        document.getElementById('containerSearchResults').innerHTML = result.viewSearchResults
+                        //console.log(result.viewSearchResults)
+                    }
+                })
+        } else {
+            document.getElementById('rowSearchResults').classList.add('d-none')
+            document.getElementById('containerSearchResults').innerHTML = ''
+        }
+    }
+
+
+
+
+
+
+
+</script>

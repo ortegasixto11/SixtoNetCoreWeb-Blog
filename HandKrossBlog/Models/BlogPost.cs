@@ -11,7 +11,9 @@ namespace HandKrossBlog.Models
         public string Title { get; set; }
         public string Text { get; set; }
         public DateTime DateCreated { get; set; }
-        public string CreatedBy { get; set; }
+        public string Fullname { get; set; }
+        public string AvatarUrl { get; set; }
+        public string Specialty_customized { get; set; }
 
         public ICollection<BlogComment> BlogPostComments { get; set; }
         public ICollection<BlogVisit> BlogPostVisits { get; set; }

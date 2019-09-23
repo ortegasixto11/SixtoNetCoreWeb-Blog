@@ -1,0 +1,139 @@
+﻿@model HandKrossBlog.ViewModels.BlogPostsIndex
+@{
+    ViewData["Title"] = "Home";
+}
+
+<style>
+
+    #container_pagination_posts .card:hover {
+        border: 1px solid #0a8ecd;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 575.98px) { 
+        .container{
+            padding-right: 0px !important;
+            padding-left: 0px !important;
+        }
+
+        /*#container_pagination_posts{
+            padding-right: 0px !important;
+            padding-left: 0px !important;
+        }*/
+    }
+
+    /*@@media (min-width: 576px) and (max-width: 767.98px) { 
+        .container{
+            margin-left: 0px;
+            margin-right: 0px;
+            padding-right: 0px;
+            padding-left: 0px;
+        }
+    }*/
+
+</style>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" rel="stylesheet" />
+
+
+<div class="container">
+    <br />
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="form-group">
+                <input id="inputSearchPost" class="form-control form-control-lg" onkeyup="tipingSearchBlog()" />
+            </div>
+        </div>
+    </div> 
+    <br /> <br />
+
+    <div class="row justify-content-center">
+        <div class="col-sm-12 col-md-10" id="container_pagination_posts">
+            @await Html.PartialAsync("../Shared/_PaginationBlogPosts.cshtml", Model)
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="~/js/superplaceholder.min.js"></script>
+<script src="~/js/general.js"></script>
+<script>
+    superplaceholder({
+        el: inputSearchPost,
+        sentences: ['Any format works', 'http://yahoo.com', 'www.facebook.com', 'airbnb.com'],
+        options: {
+            letterDelay: 160,
+            loop: true,
+            startOnFocus: false
+        }
+    })
+
+    function callback_cardPost_Click(postId) {
+        let url = window.location.origin + "/BlogPosts/Details/?id=" + postId
+        window.open(url, "_blank")
+    }
+
+    window.onscroll = function () {
+        if ((window.innerHeight + window.pageYOffset) > document.documentElement.offsetHeight) {
+            getBlogPosts()
+        }
+    }
+
+    let totalPostNumber = 6
+    function getBlogPosts() {
+        // Obtengo el numero de posts que existe en el documento HTML
+        let blogposts = document.querySelectorAll('.card').length
+        let search = document.getElementById('inputSearchPost').value
+        let hasSearch = search.trim() !== '' ? true : false
+
+        let formData = new FormData()
+        if(hasSearch) formData.append("Query", search)
+        formData.append("TotalItems", blogposts)
+
+        if (blogposts < totalPostNumber) {
+            getApiPost('/BlogPosts/GetPartialView_SectionPostPaginated', formData)
+                .then(function (result) {
+                    if (result.response === "true") {
+                        document.getElementById('container_pagination_posts').innerHTML += result.viewPaginationPosts
+                        totalPostNumber = result.totalPostnumber
+                    }
+                })
+        }
+
+    }
+
+    let timeout_typing = null
+    function tipingSearchBlog() {
+        clearTimeout(timeout_typing)
+        timeout_typing = setTimeout(function () { searchBlog() }, 500)
+    }
+
+    function searchBlog() {
+        let search = document.getElementById('inputSearchPost').value
+
+        if (search.trim() !== '') {
+            let formData = new FormData()
+            formData.append("Query", search)
+
+            getApiPost('/BlogPosts/GetPartialView_SectionPostPaginated', formData)
+                .then(function (result) {
+                    if (result.response === "true") {
+                        document.getElementById('container_pagination_posts').innerHTML = result.viewPaginationPosts
+                    }
+                })
+        } else {
+            getApiPost('/BlogPosts/GetPartialView_SectionPostPaginated', new FormData())
+                .then(function (result) {
+                    if (result.response === "true") {
+                        document.getElementById('container_pagination_posts').innerHTML = result.viewPaginationPosts
+                    }
+                })
+        }
+    }
+
+</script>

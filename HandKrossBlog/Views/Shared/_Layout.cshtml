@@ -16,12 +16,19 @@
               integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"/>
     </environment>
     <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        .bg-handkross{
+            background: #3157A7;
+        }
+    </style>
 </head>
-<body>
+@*<body style="background: #F5F8FA;">*@
+@*<body style="background-image: linear-gradient(to bottom right, #17EAD9,#6078EA);">*@
+<body style="background: #EBF0F4;">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-handkross border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HandKrossBlog</a>
+                <a class="navbar-brand text-white" asp-area="" asp-controller="Home" asp-action="Index">HandKrossBlog</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -29,13 +36,19 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="BlogPosts" asp-action="Index">Blog</a>
+                            <a class="nav-link text-white" asp-controller="BlogPosts" asp-action="Index">Blog</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="BlogPosts" asp-action="Home">Blog Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Questions" asp-action="Index">Questions</a>
                         </li>
                     </ul>
                 </div>
@@ -43,15 +56,15 @@
         </nav>
     </header>
     <div>
-        <partial name="_CookieConsentPartial" />
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
+    <br /> <br />
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2019 - HandKrossBlog - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2019 - HandKrossBlog - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
 

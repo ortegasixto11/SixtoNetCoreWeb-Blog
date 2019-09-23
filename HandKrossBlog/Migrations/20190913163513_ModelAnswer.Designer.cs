@@ -4,14 +4,16 @@ using HandKrossBlog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HandKrossBlog.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190913163513_ModelAnswer")]
+    partial class ModelAnswer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,13 +66,9 @@ namespace HandKrossBlog.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("AvatarUrl");
+                    b.Property<string>("CreatedBy");
 
                     b.Property<DateTime>("DateCreated");
-
-                    b.Property<string>("Fullname");
-
-                    b.Property<string>("Specialty_customized");
 
                     b.Property<string>("Text");
 

@@ -1,5 +1,4 @@
 ﻿using HandKrossBlog.Models;
-using Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +10,6 @@ namespace HandKrossBlog.ViewModels
     {
         public PaginatedList<BlogPost> BlogPosts { get; set; }
         public BlogPost LastBlogPost { get; set; }
+        public bool ShowNavbarPagination { get; set; } = true;
     }
 }

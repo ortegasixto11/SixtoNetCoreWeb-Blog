@@ -63,9 +63,15 @@ namespace HandKrossBlog
 
             app.UseMvc(routes =>
             {
+                //routes.MapRoute(
+                //    name: "default",
+                //    template: "{controller=BlogPosts}/{action=Index}/{id?}");
+
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=BlogPosts}/{action=Index}/{id?}");
+                    template: "{controller=BlogPosts}/{action=Home}");
+                    //template: "{controller=Questions}/{action=Index}");
+
             });
         }
     }

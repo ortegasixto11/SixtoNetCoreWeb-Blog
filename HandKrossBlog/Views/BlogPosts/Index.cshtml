@@ -29,7 +29,7 @@
         <div class="col-sm-4" id="container_pagination_posts">
             @await Html.PartialAsync("../Shared/_PaginationBlogPosts.cshtml", Model)
         </div>
-        <div class="col-sm-8" id="container-blogpost">
+        <div class="col-sm-8" id="container-blogpost" style="background: white">
             @await Html.PartialAsync("../Shared/_BlogPost.cshtml", Model.LastBlogPost)
         </div>
     </div>
@@ -74,6 +74,10 @@
         posts.forEach(function (item) {
             item.classList.remove('card-active')
         })
+    }
+
+    function callback_cardPost_Click(postId) {
+        loadPostPartialView(postId)
     }
 
 </script>
