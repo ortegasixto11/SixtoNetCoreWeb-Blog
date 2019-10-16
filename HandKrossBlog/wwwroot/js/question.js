@@ -16,13 +16,13 @@ function sendQuestion() {
     formData.append("Question", question.value)
 
     // Envio la pregunta
-    getApiPost('Questions/SaveQuestion', formData)
-        .then(function (result) {
-            // Limpio el campo
-            question.value = ''
-            closeModalMakeQuestion()
-        })
-        .catch(function (err) { alert(err) })
+    ajaxPost('Questions/SaveQuestion', formData)
+    .then(function (result) {
+        // Limpio el campo
+        question.value = ''
+        closeModalMakeQuestion()
+    })
+    .catch(function (err) { alert(err) })
 }
 
 

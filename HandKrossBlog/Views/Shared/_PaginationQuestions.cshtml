@@ -1,0 +1,43 @@
+﻿@model HandKrossBlog.ViewModels.QuestionHomeViewModel
+
+<style>
+    .link:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+</style>
+
+
+@foreach (var item in Model.Questions)
+{
+    <div class="card" id="card_question_id_@item.Id">
+        <div class="card-body" style="padding-top: 10px !important; padding-bottom: 10px !important;">
+            <div class="row">
+                <div class="col-2 d-flex justify-content-center">
+                    <img class="rounded-circle avatar-image align-self-center" src="http://placehold.it/50x50" alt="">
+                </div>
+
+                <div class="col-10">
+                    <h5 class="card-title font-weight-bold link" style="color: #3157A7" onclick="cardQuestion_Click('@item.Id')"> @item.Text </h5>
+                    <p class="text-muted"> @item.CreatedBy </p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-muted text-center">
+            @item.DateCreated.ToString("MMMM, d yyyy") &nbsp;
+            <span id="span_comment_number_post_id_@item.Id">
+                <i class="fas fa-comment-alt"></i> @item.Answers.Count()
+            </span> answers
+        </div>
+    </div>
+
+    <br />
+}
+
+<script>
+    function cardQuestion_Click(questionId) {
+        // Asi se debe de llamar la funcion que ejecuta el click del card del post
+        callback_cardQuestion_Click(questionId)
+    }
+</script>

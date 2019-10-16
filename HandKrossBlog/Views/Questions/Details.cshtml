@@ -1,0 +1,89 @@
+﻿@model HandKrossBlog.Models.Question
+@{
+    ViewData["Title"] = "Details";
+}
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<div class="container" style="background-color: #FFFFFF;">
+    <h2 class="font-weight-bold"> @Model.Text </h2>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+        <a asp-action="Home">Back to List</a>
+    </div>
+    <hr />
+    
+    <div class="row">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-8">
+
+                    <br />
+                    <div id="alert-success" class="alert alert-success d-none" role="alert">
+                        Su respuesta ha sido agregada son éxito
+                    </div>
+
+                    <div id="alert-warning" class="alert alert-warning d-none" role="alert">
+                        Debe ingresar un texto para poder guardar su respuesta
+                    </div>
+
+                    <!-- Answer Form -->
+                    <div class="card">
+                        <h5 class="card-header">Leave a Answer</h5>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <textarea id="inputAnswer" class="form-control" rows="4"></textarea>
+                                <input id="inputQuestionId" type="hidden" value="@Model.Id" />
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="sendAnswer()">Send Answer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br /> <br />
+
+            <div id="section-answers">
+                @await Html.PartialAsync("../Shared/_Answers.cshtml", Model)
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="~/js/general.js"></script>
+<script>
+
+    function sendAnswer() {
+
+        let answer = getValueElementById('inputAnswer')
+        let questionId = getValueElementById('inputQuestionId')
+
+        if (answer.trim() !== '') {
+
+            var formData = new FormData();
+            formData.append("Answer", answer)
+            formData.append("QuestionId", questionId)
+
+            ajaxPost("/Questions/SendAnswer", formData)
+            .then(function (result) {
+                if (result.response) {
+                    // Limpio la respuesta que fue introducida
+                    clearInputById('inputAnswer')
+                    // Muestro el mensaje de exito
+                    showAlert("#alert-success", 3000)
+                    // Cargo las respuestas
+                    clearAndLoadChildsElementById('section-answers', result.viewHtmlAnswers)
+                }
+            })
+
+        } else {
+            showAlert("#alert-warning", 3000)
+        }
+    }
+
+</script>

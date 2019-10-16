@@ -69,8 +69,8 @@ namespace HandKrossBlog
 
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=BlogPosts}/{action=Home}");
-                    //template: "{controller=Questions}/{action=Index}");
+                    //template: "{controller=BlogPosts}/{action=Home}");
+                    template: "{controller=Questions}/{action=Index}");
 
             });
         }

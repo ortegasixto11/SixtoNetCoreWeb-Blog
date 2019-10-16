@@ -38,14 +38,13 @@
 
 <div class="container">
     <br />
-
     <div class="row justify-content-center">
         <div class="col-12">
             <div class="form-group">
                 <input id="inputSearchPost" class="form-control form-control-lg" onkeyup="tipingSearchBlog()" />
             </div>
         </div>
-    </div> 
+    </div>
     <br /> <br />
 
     <div class="row justify-content-center">
@@ -53,7 +52,9 @@
             @await Html.PartialAsync("../Shared/_PaginationBlogPosts.cshtml", Model)
         </div>
     </div>
-
+    <div class="row justify-content-center d-none" id="divLoading">
+        @await Html.PartialAsync("../Shared/_Loading.cshtml")
+    </div>
 </div>
 
 
@@ -65,7 +66,7 @@
 <script>
     superplaceholder({
         el: inputSearchPost,
-        sentences: ['Any format works', 'http://yahoo.com', 'www.facebook.com', 'airbnb.com'],
+        sentences: ['Any format works', 'yahoo.com', 'www.facebook.com', 'airbnb.com'],
         options: {
             letterDelay: 160,
             loop: true,
@@ -88,7 +89,7 @@
     function getBlogPosts() {
         // Obtengo el numero de posts que existe en el documento HTML
         let blogposts = document.querySelectorAll('.card').length
-        let search = document.getElementById('inputSearchPost').value
+        let search = getValueElementById('inputSearchPost')
         let hasSearch = search.trim() !== '' ? true : false
 
         let formData = new FormData()
@@ -96,15 +97,16 @@
         formData.append("TotalItems", blogposts)
 
         if (blogposts < totalPostNumber) {
-            getApiPost('/BlogPosts/GetPartialView_SectionPostPaginated', formData)
-                .then(function (result) {
-                    if (result.response === "true") {
-                        document.getElementById('container_pagination_posts').innerHTML += result.viewPaginationPosts
-                        totalPostNumber = result.totalPostnumber
-                    }
-                })
+            showElementById('divLoading')
+            ajaxPost('/BlogPosts/GetPartialView_SectionPostPaginated', formData)
+            .then(function (result) {
+                if (result.response === "true") {
+                    hideElementById('divLoading')
+                    appendHtmlElementById('container_pagination_posts', result.viewPaginationPosts)
+                    totalPostNumber = result.totalPostnumber
+                }
+            })
         }
-
     }
 
     let timeout_typing = null
@@ -114,25 +116,25 @@
     }
 
     function searchBlog() {
-        let search = document.getElementById('inputSearchPost').value
+        let search = getValueElementById('inputSearchPost')
 
         if (search.trim() !== '') {
             let formData = new FormData()
             formData.append("Query", search)
 
-            getApiPost('/BlogPosts/GetPartialView_SectionPostPaginated', formData)
-                .then(function (result) {
-                    if (result.response === "true") {
-                        document.getElementById('container_pagination_posts').innerHTML = result.viewPaginationPosts
-                    }
-                })
+            ajaxPost('/BlogPosts/GetPartialView_SectionPostPaginated', formData)
+            .then(function (result) {
+                if (result.response === "true") {
+                    setHtmlElementById('container_pagination_posts', result.viewPaginationPosts)
+                }
+            })
         } else {
-            getApiPost('/BlogPosts/GetPartialView_SectionPostPaginated', new FormData())
-                .then(function (result) {
-                    if (result.response === "true") {
-                        document.getElementById('container_pagination_posts').innerHTML = result.viewPaginationPosts
-                    }
-                })
+            ajaxPost('/BlogPosts/GetPartialView_SectionPostPaginated', new FormData())
+            .then(function (result) {
+                if (result.response === "true") {
+                    setHtmlElementById('container_pagination_posts', result.viewPaginationPosts)
+                }
+            })
         }
     }
 

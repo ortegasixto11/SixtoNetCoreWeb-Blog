@@ -354,7 +354,7 @@ namespace HandKrossBlog.Controllers
             }
             catch (Exception ex)
             {
-                return "Error";
+                return "Error " + ex.Message;
             }
         }
 
@@ -379,33 +379,6 @@ namespace HandKrossBlog.Controllers
             return _context.Posts.Any(e => e.Id == id);
         }
 
-        //public async Task<IActionResult> SearchBlogs(string Query)
-        //{
-        //    try
-        //    {
-        //        BlogPostsIndex viewModelIndex = await GetBlogPostsPaginated(false, null, null, Query);
-        //        viewModelIndex.ShowNavbarPagination = false; // Oculto la navegacion de la paginacion
-        //        string view_searchResults = GetPartialView_BlogPost(viewModelIndex);
-        //        return new JsonResult(new { Response = "true", viewSearchResults = view_searchResults });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new JsonResult(new { Response = "false", Error = ex.Message });
-        //    }
-        //}
-
-        //private string GetPartialView_BlogPost(BlogPostsIndex blogPosts)
-        //{
-        //    try
-        //    {
-        //        var viewHtml = _viewRenderService.RenderToStringAsync("_PaginationBlogPosts", blogPosts);
-        //        return viewHtml.Result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return "Error " + ex.Message;
-        //    }
-        //}
 
     }
 }

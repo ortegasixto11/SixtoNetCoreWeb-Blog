@@ -1,0 +1,178 @@
+﻿
+@model HandKrossBlog.Models.Question
+
+
+@foreach (var item in Model.Answers.OrderByDescending(x => x.PositivePoints))
+{
+    <div class="row">
+        <div class="col-sm-8">
+            <!-- Single Answer -->
+            <div class="media mb-4">
+                <img class="d-flex mr-3 rounded-circle" src="http://placehold.it/50x50" alt="">
+                <div class="media-body">
+                    <h5 class="mt-0">@item.CreatedBy el @item.DateCreated.ToString("dd/MM/yyyy, HH:mm")</h5>
+                    @item.Text
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Options
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalUpdate-Answer" onclick="prepareAnswerToUpdate('@item.QuestionId', '@item.Id', '@item.Text')">Edit</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalDelete-Answer" onclick="prepareAnswerToDelete('@item.QuestionId', '@item.Id')">Delete</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-info btn-sm" onclick="sendPositivePointToAnswer('@item.Id', '@item.QuestionId')">Votar @item.PositivePoints</button>
+            </div>
+        </div>
+    </div>
+    <br />
+
+}
+
+<!-- Modal Delete Answer -->
+<div class="modal fade" id="modalDelete-Answer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete Answer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you want to delete this answer?
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCloseModal-DeleteAnswer" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-danger" onclick="deleteAnswer()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div> <!-- End .modal Delete Answer -->
+
+<!-- Modal Edit Comment -->
+<div class="modal fade" id="modalUpdate-Answer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Edit Answer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div id="alertWarning-UpdateAnswer" class="alert alert-warning d-none" role="alert">
+                        Debe ingresar un texto para poder guardar su respuesta
+                    </div>
+
+                    <textarea id="inputEditAnswer" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCloseModal-UpdateAnswer" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateAnswer()">Save</button>
+            </div>
+        </div>
+    </div>
+</div> <!-- End .modal Edit Comment -->
+
+<script src="~/js/general.js"></script>
+<script>
+
+    function sendPositivePointToAnswer(answerId, questionId) {
+        var formData = new FormData()
+        formData.append("AnswerId", answerId)
+        formData.append("QuestionId", questionId)
+
+        ajaxPost("/Questions/SendPositivePointAnswer", formData)
+        .then(function (result) {
+            if (result.response) {
+                clearAndLoadChildsElementById('section-answers', result.viewHtmlAnswers)
+            }
+        })
+    }
+
+    function prepareAnswerToDelete(questionId, answerId) {
+        localStorage.setItem('DeleteAnswer_QuestionId', questionId)
+        localStorage.setItem('DeleteAnswer_AnswerId', answerId)
+    }
+
+    function prepareAnswerToUpdate(questionId, answerId, answer) {
+        localStorage.setItem('UpdateAnswer_QuestionId', questionId)
+        localStorage.setItem('UpdateAnswer_AnswerId', answerId)
+        setValueElementById('inputEditAnswer', answer)
+    }
+
+    function deleteAnswer() {
+        let questionId = localStorage.getItem('DeleteAnswer_QuestionId') || ''
+        let answerId = localStorage.getItem('DeleteAnswer_AnswerId') || ''
+
+        if (questionId === '' || answerId === '') {
+            alert('No se puede eliminar la respuesta')
+            return
+        }
+
+        var formData = new FormData()
+        formData.append("QuestionId", questionId)
+        formData.append("AnswerId", answerId)
+
+        ajaxPost("/Questions/DeleteAnswer", formData)
+        .then(function (result) {
+            if (result.response) {
+                // Cargo las respuestas
+                clearAndLoadChildsElementById('section-answers', result.viewHtmlAnswers)
+            }
+        })
+
+        // Para que se cierre el modal
+        clickElementById('btnCloseModal-DeleteAnswer')
+
+        localStorage.setItem('DeleteAnswer_QuestionId', '')
+        localStorage.setItem('DeleteAnswer_AnswerId', '')
+    }
+
+    function updateAnswer() {
+        let questionId = localStorage.getItem('UpdateAnswer_QuestionId') || ''
+        let answerId = localStorage.getItem('UpdateAnswer_AnswerId') || ''
+
+        if (questionId === '' || answerId === '') {
+            alert('No se puede eliminar la respuesta')
+            return
+        }
+
+        let answer = getValueElementById('inputEditAnswer')
+        if (answer === '' || answer === null) {
+            showAlert("#alertWarning-UpdateAnswer", 2000)
+            return
+        }
+
+        var formData = new FormData()
+        formData.append("QuestionId", questionId)
+        formData.append("AnswerId", answerId)
+        formData.append("Answer", answer)
+
+        ajaxPost("/Questions/UpdateAnswer", formData)
+        .then(function (result) {
+            if (result.response) {
+                // Cargo las respuestas
+                clearAndLoadChildsElementById('section-answers', result.viewHtmlAnswers)
+            }
+        })
+
+        // Para que se cierre el modal
+        clickElementById('modalUpdate-Answer')
+        // Limpio las variables
+        localStorage.setItem('UpdateAnswer_QuestionId', '')
+        localStorage.setItem('UpdateAnswer_AnswerId', '')
+        // Limpio el campo de la respuesta
+        clearInputById('inputEditAnswer')
+    }
+
+
+</script>
+

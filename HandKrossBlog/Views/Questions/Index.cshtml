@@ -24,11 +24,7 @@
     <!-- Input Buscar Pregunta -->
     <div class="row justify-content-center">
         <div class="col-8">
-            @*<div class="form-group">
-                <input class="form-control" placeholder="Search a question" autofocus />
-            </div>*@
             <div class="input-group mb-2">
-
                 <input id="inputSearchQuestion" type="text" class="form-control" placeholder="Search a question" autofocus onkeyup="tipingQuestion()">
                 <div class="input-group-append">
                     <button class="btn btn-handkross" type="button" onclick="searchQuestion()"> <i class="fas fa-search"></i> </button>
@@ -80,33 +76,11 @@
                         <div id="alert-warning-question" class="alert alert-warning d-none" role="alert">
                             Debe ingresar un texto para poder enviar su pregunta.
                         </div>
-                        <textarea id="inputWriteQuestion" class="form-control" rows="3" placeholder="Write your question" maxlength="120"></textarea>
+                        <textarea id="inputWriteQuestion" class="form-control" rows="3" placeholder="Write your question" maxlength="120" onkeyup="tipingMakeQuestion()"></textarea>
                     </div>
 
                     <!-- Search results -->
-                    <div>
-                        <ul class="list-group">
-                            <li class="list-group-item">Cras justo odio</li>
-                            <li class="list-group-item">Dapibus ac facilisis in</li>
-                            <li class="list-group-item">Morbi leo risus</li>
-                            <li class="list-group-item">Porta ac consectetur ac</li>
-                            <li class="list-group-item">Vestibulum at eros</li>
-                            <li class="list-group-item">Cras justo odio</li>
-                            <li class="list-group-item">Dapibus ac facilisis in</li>
-                            <li class="list-group-item">Morbi leo risus</li>
-                            <li class="list-group-item">Porta ac consectetur ac</li>
-                            <li class="list-group-item">Vestibulum at eros</li>
-                            <li class="list-group-item">Cras justo odio</li>
-                            <li class="list-group-item">Dapibus ac facilisis in</li>
-                            <li class="list-group-item">Morbi leo risus</li>
-                            <li class="list-group-item">Porta ac consectetur ac</li>
-                            <li class="list-group-item">Vestibulum at eros</li>
-                            <li class="list-group-item">Cras justo odio</li>
-                            <li class="list-group-item">Dapibus ac facilisis in</li>
-                            <li class="list-group-item">Morbi leo risus</li>
-                            <li class="list-group-item">Porta ac consectetur ac</li>
-                            <li class="list-group-item">Vestibulum at eros</li>
-                        </ul>
+                    <div id="containerSearchResults_MakeQuestion">
                     </div>
 
                 </div>
@@ -136,30 +110,48 @@
     }
 
     function searchQuestion() {
-        let question = document.getElementById('inputSearchQuestion').value
+        let question = getValueElementById('inputSearchQuestion')
 
         if (question.trim() !== '') {
             let formData = new FormData()
             formData.append("Question", question)
 
-            getApiPost('/Questions/SearchResult', formData)
-                .then(function (result) {
-                    if (result.response === "true") {
-                        document.getElementById('rowSearchResults').classList.remove('d-none')
-                        document.getElementById('containerSearchResults').innerHTML = result.viewSearchResults
-                        //console.log(result.viewSearchResults)
-                    }
-                })
+            ajaxPost('/Questions/SearchResult', formData)
+            .then(function (result) {
+                if (result.response === "true") {
+                    showElementById('rowSearchResults')
+                    setHtmlElementById('containerSearchResults', result.viewSearchResults)
+                }
+            })
         } else {
-            document.getElementById('rowSearchResults').classList.add('d-none')
-            document.getElementById('containerSearchResults').innerHTML = ''
+            hideElementById('rowSearchResults')
+            setHtmlElementById('containerSearchResults', '')
         }
     }
 
+    function tipingMakeQuestion() {
+        clearTimeout(timeout_typing)
+        timeout_typing = setTimeout(function () { searchResultsMakeQuestion() }, 500)
+    }
 
+    function searchResultsMakeQuestion() {
+        let question = getValueElementById('inputWriteQuestion')
 
+        if (question.trim() !== '') {
+            let formData = new FormData()
+            formData.append("Question", question)
 
-
-
+            ajaxPost('/Questions/SearchResult', formData)
+                .then(function (result) {
+                    if (result.response === "true") {
+                        showElementById('containerSearchResults_MakeQuestion')
+                        setHtmlElementById('containerSearchResults_MakeQuestion', result.viewSearchResults)
+                    }
+                })
+        } else {
+            hideElementById('containerSearchResults_MakeQuestion')
+            setHtmlElementById('containerSearchResults_MakeQuestion', '')
+        }
+    }
 
 </script>

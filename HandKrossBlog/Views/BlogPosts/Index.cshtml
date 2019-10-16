@@ -38,35 +38,28 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="~/js/general.js"></script>
 <script src="~/js/blog.js"></script>
 <script>
     function loadPostPartialView(blogPostId) {
 
-        var formData = new FormData();
+        let formData = new FormData()
         formData.append("PostId", blogPostId)
 
-        var request = {
-            method: 'POST',
-            body: formData
-        }
-
-        fetch("/BlogPosts/GetPartialView_Post", request)
-            .then(function (res) {
-                return res.json()
-            })
-            .then(function (result) {
-                if (result.response) {
-                    document.getElementById('btnSaveComment').removeEventListener('click', function () { saveComment() })
-                    document.getElementById('container-blogpost').innerHTML = result.view
-                    document.getElementById('btnSaveComment').addEventListener('click', function () { saveComment() })
-                    clearClassPostActive()
-                    document.getElementById('card_post_id_' + blogPostId).classList.add('card-active')
-                    document.getElementById('span_number_visits_post_id_' + blogPostId).innerHTML = result.numberOfVisits
-                }
-            })
-            .catch(function (err) {
-                alert(err)
-            })
+        ajaxPost('/BlogPosts/GetPartialView_Post', formData)
+        .then(function (result) {
+            if (result.response) {
+                document.getElementById('btnSaveComment').removeEventListener('click', function () { saveComment() })
+                setHtmlElementById('container-blogpost', result.view)
+                document.getElementById('btnSaveComment').addEventListener('click', function () { saveComment() })
+                clearClassPostActive()
+                document.getElementById('card_post_id_' + blogPostId).classList.add('card-active')
+                setHtmlElementById(`span_number_visits_post_id_${blogPostId}`, result.numberOfVisits)
+            }
+        })
+        .catch(function (err) {
+            alert(err)
+        })
     }
 
     function clearClassPostActive() {

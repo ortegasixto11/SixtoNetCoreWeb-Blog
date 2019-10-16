@@ -1,0 +1,70 @@
+﻿@model HandKrossBlog.ViewModels.QuestionHomeViewModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" rel="stylesheet" />
+
+<div class="container">
+    <br />
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="form-group">
+                <input id="inputSearchQuestion" class="form-control form-control-lg" onkeyup="tipingSearchQuestion()" />
+            </div>
+        </div>
+    </div>
+    <br /> <br />
+
+    <div class="row justify-content-center">
+        <div class="col-sm-12 col-md-10" id="container_pagination_questions">
+            @await Html.PartialAsync("../Shared/_PaginationQuestions.cshtml", Model)
+        </div>
+    </div>
+    <div class="row justify-content-center d-none" id="divLoading">
+        @await Html.PartialAsync("../Shared/_Loading.cshtml")
+    </div>
+</div>
+
+<script src="~/js/general.js"></script>
+<script>
+
+    window.onscroll = function () {
+        if ((window.innerHeight + window.pageYOffset) > document.documentElement.offsetHeight) {
+            getQuestions()
+        }
+    }
+
+    let totalNumberQuestions = 6
+    function getQuestions() {
+        // Obtengo el numero de posts que existe en el documento HTML
+        let questions = document.querySelectorAll('.card').length
+        let search = getValueElementById('inputSearchQuestion')
+        let hasSearch = search.trim() !== '' ? true : false
+
+        let formData = new FormData()
+        if(hasSearch) formData.append("Query", search)
+        formData.append("TotalItems", questions)
+
+        if (questions < totalNumberQuestions) {
+            showElementById('divLoading')
+            ajaxPost('/Questions/GetPartialView_QuestionsPaginated', formData)
+            .then(function (result) {
+                if (result.response === "true") {
+                    hideElementById('divLoading')
+                    appendHtmlElementById('container_pagination_questions', result.viewPaginationQuestions)
+                    totalNumberQuestions = result.totalNumberQuestions
+                }
+            })
+        }
+    }
+
+    function callback_cardQuestion_Click(questionId) {
+        let url = `${window.location.origin}/Questions/Details/?id=${questionId}`
+        window.open(url, "_blank")
+    }
+
+</script>
+

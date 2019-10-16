@@ -15,11 +15,6 @@ function formatDate(date) {
     return responseDate
 }
 
-function showAlert(element, duration_ms) {
-    document.querySelector(element).classList.remove("d-none")
-    setTimeout(function () { document.querySelector(element).classList.add("d-none") }, duration_ms)
-}
-
 function prepareCommentToDelete(post_id, comment_id) {
     localStorage.setItem('DeleteComment_PostId', post_id)
     localStorage.setItem('DeleteComment_CommentId', comment_id)
@@ -28,14 +23,13 @@ function prepareCommentToDelete(post_id, comment_id) {
 function prepareCommentToEdit(post_id, comment_id, comment) {
     localStorage.setItem('EditComment_PostId', post_id)
     localStorage.setItem('EditComment_CommentId', comment_id)
-    document.getElementById('inputEditComment').value = ''
-    document.getElementById('inputEditComment').value = comment
+    setValueElementById('inputEditComment', comment)
 }
 
 function saveComment() {
-    var comment = document.querySelector('#inputComment').value
-    var user = document.querySelector('#inputUser').value
-    var post_id = document.querySelector('#postId').value
+    var comment = getValueElementById('inputComment')
+    var user = getValueElementById('inputUser')
+    var post_id = getValueElementById('postId')
 
     if (comment.trim() !== "") {
 
@@ -44,20 +38,20 @@ function saveComment() {
         formData.append("User", user)
         formData.append("PostId", post_id)
 
-        getApiPost("/BlogPosts/SaveComment", formData)
-            .then(function (result) {
-                if (result.response) {
-                    // Limpio los valores que fueron introducidos
-                    document.querySelector('#inputComment').value = ""
-                    document.querySelector('#inputUser').value = ""
-                    // Muestro el mensaje de exito
-                    showAlert("#alert-success", 3000)
-                    // Cargo los comentarios
-                    loadComments(result.viewComments)
-                    // Aca cambio el numero total de comentarios en el sidebar menu
-                    changeNumberOfCommentsSidebarMenu(post_id, result.numberOfComments)
-                }
-            })
+        ajaxPost("/BlogPosts/SaveComment", formData)
+        .then(function (result) {
+            if (result.response) {
+                // Limpio los valores que fueron introducidos
+                document.querySelector('#inputComment').value = ""
+                document.querySelector('#inputUser').value = ""
+                // Muestro el mensaje de exito
+                showAlert("#alert-success", 3000)
+                // Cargo los comentarios
+                loadComments(result.viewComments)
+                // Aca cambio el numero total de comentarios en el sidebar menu
+                changeNumberOfCommentsSidebarMenu(post_id, result.numberOfComments)
+            }
+        })
 
     } else {
         showAlert("#alert-warning", 3000)
@@ -73,22 +67,22 @@ function deleteComment() {
         return
     }
 
-    var formData = new FormData();
+    var formData = new FormData()
     formData.append("CommentId", comment_id)
     formData.append("PostId", post_id)
 
-    getApiPost("/BlogPosts/DeleteComment", formData)
-        .then(function (result) {
-            if (result.response) {
-                // Cargo los comentarios
-                loadComments(result.viewComments)
-                // Aca cambio el numero total de comentarios en el sidebar menu
-                changeNumberOfCommentsSidebarMenu(post_id, result.numberOfComments)
-            }
-        })
+    ajaxPost("/BlogPosts/DeleteComment", formData)
+    .then(function (result) {
+        if (result.response) {
+            // Cargo los comentarios
+            loadComments(result.viewComments)
+            // Aca cambio el numero total de comentarios en el sidebar menu
+            changeNumberOfCommentsSidebarMenu(post_id, result.numberOfComments)
+        }
+    })
 
     // Para que se cierre el modal
-    document.getElementById('btn-close-modal-delete-comment').click()
+    clickElementById('btn-close-modal-delete-comment')
 
     // Limpio las variables
     localStorage.setItem('DeleteComment_PostId', '')
@@ -110,29 +104,28 @@ function editComment() {
         return
     }
 
-    var formData = new FormData();
+    var formData = new FormData()
     formData.append("CommentId", comment_id)
     formData.append("PostId", post_id)
     formData.append("Comment", comment)
 
-    getApiPost("/BlogPosts/EditComment", formData)
-        .then(function (result) {
-            if (result.response) {
-                // Cargo los comentarios
-                loadComments(result.viewComments)
-                // Aca cambio el numero total de comentarios en el sidebar menu
-                changeNumberOfCommentsSidebarMenu(post_id, result.numberOfComments)
-            }
-        })
+    ajaxPost("/BlogPosts/EditComment", formData)
+    .then(function (result) {
+        if (result.response) {
+            // Cargo los comentarios
+            loadComments(result.viewComments)
+            // Aca cambio el numero total de comentarios en el sidebar menu
+            changeNumberOfCommentsSidebarMenu(post_id, result.numberOfComments)
+        }
+    })
 
-    // Limpio el campo del comentario
-    document.getElementById('inputEditComment').value = ''
     // Para que se cierre el modal
-    document.getElementById('btn-close-modal-edit-comment').click()
+    clickElementById('btn-close-modal-edit-comment')
     // Limpio las variables
     localStorage.setItem('EditComment_PostId', '')
     localStorage.setItem('EditComment_CommentId', '')
-    document.getElementById('inputEditComment').value = ''
+    // Limpio el campo del comentario
+    clearInputById('inputEditComment')
 }
 
 function loadComments(viewComments) {
@@ -144,24 +137,6 @@ function clearChildsElement(element_id) {
     var section_comments = document.querySelector(element_id)
     while (section_comments.firstChild) section_comments.removeChild(section_comments.firstChild)
     section_comments = null
-}
-
-function getApiPost(url, formData) {
-    var request = {
-        method: 'POST',
-        body: formData
-    }
-
-    return fetch(url, request)
-        .then(function (res) {
-            return res.json()
-        })
-        .then(function (result) {
-            return result
-        })
-        .catch(function (err) {
-            alert(err)
-        })
 }
 
 function changeNumberOfCommentsSidebarMenu(post_id, numberOfComments) {

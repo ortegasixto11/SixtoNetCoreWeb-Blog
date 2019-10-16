@@ -1,8 +1,37 @@
 ﻿@model List<HandKrossBlog.Models.Question>
 
-<ul class="list-group">
-    @foreach (var item in Model)
-    {
-        <li class="list-group-item"> @item.Text </li>
+<style>
+    .card-table-SearchResults:hover {
+        border: 1px solid #0a8ecd;
+        cursor: pointer;
     }
-</ul>
+</style>
+
+
+<table class="table table-borderless">
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td style="padding: 5px;">
+                    <div class="card card-table-SearchResults">
+                        <div class="card-body" style="padding: 10px">
+                            <div class="row">
+                                <div class="col-10">
+                                    <h5 class="card-title font-weight-bold link" style="color: #3157A7" onclick="cardQuestion_Click('@item.Id')"> @item.Text </h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted text-center" style="padding: 5px">
+                            @item.DateCreated.ToString("MMMM, d yyyy") &nbsp;
+                            <span id="span_comment_number_post_id_@item.Id">
+                                <i class="fas fa-comment-alt"></i> @item.Answers.Count()
+                            </span> answers
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
